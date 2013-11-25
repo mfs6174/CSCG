@@ -1,0 +1,14 @@
+*.out
+*.o
+*.jpg
+*.png
+*.avi
+*~
+*#
+#*
+NR.*
+*.mat
+*.pgm
+*.bin
+*.a
+
