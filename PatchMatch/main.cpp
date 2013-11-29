@@ -24,7 +24,7 @@ void vote(Mat &im,int Ns,int Nt)
         {
           Vec3b &v2=mc2.imgT.at<Vec3b>(xx+i-1,yy+j-1);
           for (int k=0;k<3;k++)
-            pool[x+i][y+j][k]+=v2.val[k]*(nt)*(1-ta);
+            pool[x+i][y+j][k]+=v2.val[k]*(nt);
           cnt[x+i][y+j][0]++;
         }
     }
@@ -41,7 +41,7 @@ void vote(Mat &im,int Ns,int Nt)
           {
             Vec3b &v2=mc1.imgS.at<Vec3b>(x+i-1,y+j-1);
             for (int k=0;k<3;k++)
-              pool[xx+i][yy+j][k]+=v2.val[k]*(ns)*ta;
+              pool[xx+i][yy+j][k]+=v2.val[k]*(ns);
             cnt[xx+i][yy+j][1]++;
           }
       }
@@ -52,7 +52,7 @@ void vote(Mat &im,int Ns,int Nt)
       Vec3b &v2=im.at<Vec3b>(i-1,j-1);
       for (int k=0;k<3;k++)
       {
-        pool[i][j][k]/=(cnt[i][j][0]*nt*(1-ta)+cnt[i][j][1]*ns*ta);
+        pool[i][j][k]/=(cnt[i][j][0]*nt+cnt[i][j][1]*ns);
         v2.val[k]=pool[i][j][k];
       }
     }
@@ -80,8 +80,7 @@ int main(int argc, char *argv[])
   }
   if (argc==4)
   {
-    ta=0.0;
-    bgit=1000;
+    ta=0.5;
     int itnum;
     cout<<"input iteration times"<<endl;
     cin>>itnum;
@@ -100,14 +99,12 @@ int main(int argc, char *argv[])
     imshow("target",im2);
     imwrite("match"+string(argv[1])+"0"+".jpg",im2);
     waitKey(1000);
-    double err;
-    if (ta>0)
-    {
-      err=mc1.doIter();
-      cout<<"done st iter with "<<err<<endl;
-    }
-    err=mc2.doIter();
-    cout<<"done ts iter with "<<err<<endl;
+    double err1,err2;
+    err1=mc1.doIter();
+    cout<<"done st iter with "<<err1<<endl;
+    err2=mc2.doIter();
+    cout<<"done ts iter with "<<err2<<endl;
+    cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
     for (int it=1;it<=itnum;it++)
     {
       vote(im2,Ns,Nt);
@@ -117,27 +114,23 @@ int main(int argc, char *argv[])
       id<<it;
       imwrite("match"+string(argv[1])+id.str()+".jpg",im2);
       waitKey(1000);
-      if (it>bgit)
-      {
-        mc1.reload(im2,false);
-        mc2.reload(im2,true);
-      }
-      if (ta>0)
-      {
-        err=mc1.doIter();
-        cout<<"done st iter with "<<err<<endl;
-      }
-      err=mc2.doIter();
-      cout<<"done ts iter with "<<err<<endl;
+      //mc1.reload(im2,false);
+      //mc2.reload(im2,true);
+      err1=mc1.doIter();
+      cout<<"done st iter with "<<err1<<endl;
+      err2=mc2.doIter();
+      cout<<"done ts iter with "<<err2<<endl;
+      cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
     }
   }
   if (argc==2)
   {
-    bgit=1;
-    int itnum,rnum;
+    bgit=0;
+    int itnum,rnum,pmnum;
     int fw,fh;
-    cout<<"input iteration times,resize times"<<endl;
-    cin>>itnum>>rnum;
+    double err1,err2;
+    cout<<"input iteration times,resize times,patchMatch iteration times"<<endl;
+    cin>>itnum>>rnum>>pmnum;
     cout<<"intput new width height"<<endl;
     cin>>fw>>fh;
     Mat im1,im2;
@@ -158,10 +151,14 @@ int main(int argc, char *argv[])
       mc2.load(im2,im1);
       mc1.init(false);
       mc2.init(false);
-      double err=mc1.doIter();
-      cout<<"done st iter with "<<err<<endl;
-      err=mc2.doIter();
-      cout<<"done ts iter with "<<err<<endl;
+      for (int pit=1;pit<=pmnum;pit++)
+      {
+        err1=mc1.doIter();
+        cout<<"done st iter with "<<err1<<endl;
+        err2=mc2.doIter();
+        cout<<"done ts iter with "<<err2<<endl;
+      }
+      cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
       for (int it=1;it<=titnum;it++)
       {
         vote(im2,Ns,Nt);
@@ -173,10 +170,14 @@ int main(int argc, char *argv[])
           mc1.reload(im2,false);
           mc2.reload(im2,true);
         }
-        double err=mc1.doIter();
-        cout<<"done st iter with "<<err<<endl;
-        err=mc2.doIter();
-        cout<<"done ts iter with "<<err<<endl;
+        for (int pit=1;pit<=pmnum;pit++)
+        {
+          err1=mc1.doIter();
+          cout<<"done st iter with "<<err1<<endl;
+          err2=mc2.doIter();
+          cout<<"done ts iter with "<<err2<<endl;
+        }
+        cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
       }
       Mat imt;
       resize(im2,imt,Size( im1.cols*((double)fw/im1.cols+(1-(double)fw/im1.cols)*(rnum-ttt)/rnum),im1.rows*((double)fh/im1.rows+(1-(double)fh/im1.rows)*(rnum-ttt)/rnum) ),0,0,CV_INTER_AREA);
