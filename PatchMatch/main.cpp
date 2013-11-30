@@ -60,33 +60,22 @@ void vote(Mat &im,int Ns,int Nt)
 
 int main(int argc, char *argv[])
 {
-  if (argc==3)
+  if (argc<2)
   {
-    int itnum;
-    cout<<"input iteration times"<<endl;
-    cin>>itnum;
-    Mat im1,im2;
-    im1=imread(string(argv[1]));
-    im2=imread(string(argv[2]));
-    mc1.load(im1,im2);
-    cout<<"loaded"<<endl;
-    mc1.init(false);
-    for (int i=1;i<=itnum;i++)
-    {
-      cout<<"iteration "<<i<<endl;
-      double err=mc1.doIter();
-      cout<<err<<endl;
-    }
+    cout<<"plese give which function to use"<<endl;
+    return 0;
   }
-  if (argc==4)
+  bool ran=false;
+  if (string(argv[1])=="rec")
   {
+    ran=true;
     ta=0.5;
     int itnum;
     cout<<"input iteration times"<<endl;
     cin>>itnum;
     Mat im1,im2;
-    im1=imread(string(argv[1]));
-    im2=imread(string(argv[2]));
+    im1=imread(string(argv[2]));
+    im2=imread(string(argv[3]));
     nw=im2.cols;nh=im2.rows;
     int Nt=nw*nh,Ns=im1.cols*im1.rows;
     namedWindow("target",1);
@@ -97,7 +86,7 @@ int main(int argc, char *argv[])
     vote(im2,Ns,Nt);
     cout<<"done voting"<<endl;
     imshow("target",im2);
-    imwrite("match"+string(argv[1])+"0"+".jpg",im2);
+    imwrite("rec_"+string(argv[3])+"0"+".jpg",im2);
     waitKey(1000);
     double err1,err2;
     err1=mc1.doIter();
@@ -112,7 +101,7 @@ int main(int argc, char *argv[])
       imshow("target",im2);
       stringstream id;
       id<<it;
-      imwrite("match"+string(argv[1])+id.str()+".jpg",im2);
+      imwrite("rec_"+string(argv[3])+id.str()+".jpg",im2);
       waitKey(1000);
       //mc1.reload(im2,false);
       //mc2.reload(im2,true);
@@ -123,8 +112,9 @@ int main(int argc, char *argv[])
       cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
     }
   }
-  if (argc==2)
+  if (string(argv[1])=="ret")
   {
+    ran=true;
     bgit=0;
     int itnum,rnum,pmnum;
     int fw,fh;
@@ -187,11 +177,19 @@ int main(int argc, char *argv[])
       Nt=nw*nh;
       stringstream id;
       id<<ttt;
-      imwrite("img_"+string(argv[1])+id.str()+".jpg",im2);
+      imwrite("img_"+string(argv[2])+id.str()+".jpg",im2);
     }
     imshow("target",im2);
     waitKey(0);
-    
   }
+  if (string(argv[1])=="atc")
+  {
+    ran=true;
+  }
+  
+  if (!ran)
+  {
+    cout<<"please give a legal function name"<<endl;
+  } 
   return 0;
 }
