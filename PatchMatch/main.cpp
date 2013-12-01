@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     ran=true;
     ta=0.5;
     int itnum;
-    cout<<"input iteration times"<<endl;
+    cout<<"input patchMatch iteration times"<<endl;
     cin>>itnum;
     Mat im1,im2;
     im1=imread(string(argv[2]));
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     cout<<"intput new width height"<<endl;
     cin>>fw>>fh;
     Mat im1,im2;
-    im1=imread(string(argv[1]));
+    im1=imread(string(argv[2]));
     int Nt,Ns=im1.cols*im1.rows;
     //im2.create(nh,nw,CV_8UC3);
     //im2=imread(string(argv[2]));
@@ -185,6 +185,79 @@ int main(int argc, char *argv[])
   if (string(argv[1])=="atc")
   {
     ran=true;
+    int itnum;
+    int fw,fh;
+    double err1,err2;
+    int peakX,peakY;
+    double maxD=0,minD=9999999;
+    cout<<"input patchMatch iteration times"<<endl;
+    cin>>itnum;
+    cout<<"intput cropped width height"<<endl;
+    cin>>fw>>fh;
+    Mat im1,im2,dissMap,vmap;
+    im1=imread(string(argv[2]));
+    int Nt,Ns=im1.cols*im1.rows;
+    dissMap.create(im1.rows,im1.cols,CV_64F);
+    vmap=Mat::zeros(im1.rows,im1.cols,CV_8UC1);
+    namedWindow("cropped",1);
+    int lux,luy,rdx,rdy;
+    //cout<<im1.rows<<' '<<im1.cols<<endl;
+    for (int mi=0;mi<im1.rows;mi+=10)
+      for (int mj=0;mj<im1.cols;mj+=10)
+      {
+        vmap.at<uchar>(mi,mj)=1;
+        cout<<"calculating "<<mi<<','<<mj<<endl;
+        lux=max(mj-(fw-1)/2,0);
+        luy=max(mi-(fh-1)/2,0);
+        rdx=min(mj+fw/2,im1.cols-1);
+        rdy=min(mi+fh/2,im1.rows-1);
+        im2=im1(Rect(lux,luy,rdx-lux+1,rdy-luy+1));
+        nh=im2.rows;
+        nw=im2.cols;
+        Nt=nh*nw;
+                cout<<lux<<' '<<luy<<' '<<rdx<<' '<<rdy<<endl;
+        mc1.load(im1,im2);
+        mc1.init(false);
+        // mc2.load(im2,im1);
+        // mc2.init(false);
+        imshow("cropped",im2);
+        waitKey(100);
+        for (int it=1;it<=itnum;it++)
+        {
+          err1=mc1.doIter();
+          cout<<"done st iter with "<<err1<<endl;
+          // err2=mc2.doIter();
+          // cout<<"done ts iter with "<<err2<<endl;
+        }
+        double dissm=err1/Ns;//+err2/Nt;
+        maxD=max(maxD,dissm);
+        if (dissm<minD)
+        {
+          peakX=mj;
+          peakY=mi;
+        }
+        minD=min(minD,dissm);
+        cout<<"done with D="<<dissm<<endl;
+        dissMap.at<double>(mi,mj)=dissm;
+      }
+    namedWindow("dissValue",1);
+    for (int mi=0;mi<im1.rows;mi++)
+      for (int mj=0;mj<im1.cols;mj++)
+      {
+        if (vmap.at<uchar>(mi,mj)>0)
+          vmap.at<uchar>(mi,mj)=(uchar)( (dissMap.at<double>(mi,mj)-minD)/(maxD-minD)*255 );
+        else
+          vmap.at<uchar>(mi,mj)=255;
+      }
+    lux=max(peakX-(fw-1)/2,0);
+    luy=max(peakY-(fh-1)/2,0);
+    rdx=min(peakX+fw/2,im1.cols-1);
+    rdy=min(peakY+fh/2,im1.rows-1);
+    im2=im1(Rect(lux,luy,rdx-lux+1,rdy-luy+1));
+    cout<<"Peak is "<<peakY<<','<<peakX<<endl;
+    imshow("dissValue",vmap);
+    imshow("cropped",im2);
+    waitKey(0);
   }
   
   if (!ran)
