@@ -1,7 +1,7 @@
 #ifndef PM_H
 #define PM_H
 
-#define PATCH_SIZE 7
+#define PATCH_SIZE 5
 #define ALPHA 0.5
 
 struct PMatch
