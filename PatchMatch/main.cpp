@@ -2,29 +2,29 @@
 #include "PM.h"
 
 PMatch mc1=PMatch(),mc2=PMatch();
-vector< vector< vector<double> > >pool;
+vector< vector< vector<int> > > pool[2];
 vector< vector< vector<int> > >cnt;
 int nh=0,nw=0;
 double ta=0.5;
 int bgit=2;
-
+int lhPatch=-(PATCH_SIZE-1)/2,rhPatch=PATCH_SIZE/2;
 void vote(Mat &im,int Ns,int Nt)
 {
   double ns=1.0/Ns,nt=1.0/Nt;
-  pool=vector< vector< vector<double> > >(nh+1,vector< vector<double> >(nw+1,vector<double>(3,0) ));
+  pool[0]=pool[1]=( vector< vector< vector<int> > >(nh+1,vector< vector<int> >(nw+1,vector<int>(3,0) )) );
   cnt=vector< vector< vector<int> > >(nh+1,vector< vector<int> >(nw+1,vector<int>(2,0) ));
   for (int x=1;x<=mc2.sh;x++)
     for (int y=1;y<=mc2.sw;y++)
     {
       int xx=x+mc2.fS[x][y].x,yy=y+mc2.fS[x][y].y;
-      int i1=max(-(PATCH_SIZE-1)/2,max(-x+1,-xx+1)),i2=min(PATCH_SIZE/2,min(mc2.sh-x,mc2.th-xx));
-      int j1=max(-(PATCH_SIZE-1)/2,max(-y+1,-yy+1)),j2=min(PATCH_SIZE/2,min(mc2.sw-y,mc2.tw-yy));
+      int i1=max(lhPatch,max(-x+1,-xx+1)),i2=min(rhPatch,min(mc1.sh-x,mc1.th-xx));
+      int j1=max(lhPatch,max(-y+1,-yy+1)),j2=min(rhPatch,min(mc1.sw-y,mc1.tw-yy));
       for (int i=i1;i<=i2;i++)
         for (int j=j1;j<=j2;j++)
         {
           Vec3b &v2=mc2.imgT.at<Vec3b>(xx+i-1,yy+j-1);
           for (int k=0;k<3;k++)
-            pool[x+i][y+j][k]+=v2.val[k]*(nt);
+            pool[0][x+i][y+j][k]+=v2.val[k];
           cnt[x+i][y+j][0]++;
         }
     }
@@ -34,14 +34,14 @@ void vote(Mat &im,int Ns,int Nt)
       for (int y=1;y<=mc1.sw;y++)
       {
         int xx=x+mc1.fS[x][y].x,yy=y+mc1.fS[x][y].y;
-        int i1=max(-(PATCH_SIZE-1)/2,max(-x+1,-xx+1)),i2=min(PATCH_SIZE/2,min(mc1.sh-x,mc1.th-xx));
-        int j1=max(-(PATCH_SIZE-1)/2,max(-y+1,-yy+1)),j2=min(PATCH_SIZE/2,min(mc1.sw-y,mc1.tw-yy));
+        int i1=max(lhPatch,max(-x+1,-xx+1)),i2=min(rhPatch,min(mc1.sh-x,mc1.th-xx));
+        int j1=max(lhPatch,max(-y+1,-yy+1)),j2=min(rhPatch,min(mc1.sw-y,mc1.tw-yy));
         for (int i=i1;i<=i2;i++)
           for (int j=j1;j<=j2;j++)
           {
             Vec3b &v2=mc1.imgS.at<Vec3b>(x+i-1,y+j-1);
             for (int k=0;k<3;k++)
-              pool[xx+i][yy+j][k]+=v2.val[k]*(ns);
+              pool[1][xx+i][yy+j][k]+=v2.val[k];
             cnt[xx+i][yy+j][1]++;
           }
       }
@@ -52,8 +52,7 @@ void vote(Mat &im,int Ns,int Nt)
       Vec3b &v2=im.at<Vec3b>(i-1,j-1);
       for (int k=0;k<3;k++)
       {
-        pool[i][j][k]/=(cnt[i][j][0]*nt+cnt[i][j][1]*ns);
-        v2.val[k]=pool[i][j][k];
+        v2.val[k]=(pool[0][i][j][k]*nt+pool[1][i][j][k]*ns)/(cnt[i][j][0]*nt+cnt[i][j][1]*ns);
       }
     }
 }
@@ -87,7 +86,7 @@ int main(int argc, char *argv[])
     cout<<"done voting"<<endl;
     imshow("target",im2);
     imwrite("rec_"+string(argv[3])+"0"+".jpg",im2);
-    waitKey(1000);
+    waitKey(100);
     double err1,err2;
     err1=mc1.doIter();
     cout<<"done st iter with "<<err1<<endl;
@@ -102,7 +101,7 @@ int main(int argc, char *argv[])
       stringstream id;
       id<<it;
       imwrite("rec_"+string(argv[3])+id.str()+".jpg",im2);
-      waitKey(1000);
+      waitKey(100);
       //mc1.reload(im2,false);
       //mc2.reload(im2,true);
       err1=mc1.doIter();

@@ -64,7 +64,7 @@ inline int sqr(int c)
   return c*c;
 }
 
-inline bool PMatch::_cplt(int x,int y,Point2d ofs)
+inline bool PMatch::_cplt(int x,int y,Point2i ofs)
 {
   if (x-lhPatch>0&&y-lhPatch>0&&x+rhPatch<=sh&&y+rhPatch<=sw&&
       x+ofs.x-lhPatch>0&&y+ofs.y-lhPatch>0&&x+ofs.x+rhPatch<=th&&y+ofs.y+rhPatch<=tw)
@@ -107,7 +107,7 @@ int PMatch::_moveRight(int x,int y)
   return rt/sqrPsize;
 }
 
-int PMatch::_cal(int x,int y,Point2d pnt,int pmax)
+int PMatch::_cal(int x,int y,Point2i pnt,int pmax)
 {
   int xx=x+pnt.x,yy=y+pnt.y;
   int vld=0,ssd=0;
@@ -154,7 +154,7 @@ int PMatch::init(bool _both)
   rhPatch=PATCH_SIZE/2;
   sqrPsize=sqr(PATCH_SIZE);
   vlS.create(sh,sw,CV_8UC3);
-  fS=initFs=vector< vector<Point2d> >(sh+1,vector<Point2d>(sw+1));
+  fS=initFs=vector< vector<Point2i> >(sh+1,vector<Point2i>(sw+1));
   fGood=vector< vector<int> >(sh+1,vector<int>(sw+1,maxlongint));
   for (int i=1;i<=sh;i++)
     for (int j=1;j<=sw;j++)
@@ -221,7 +221,7 @@ double PMatch::doIter()
         e2=maxlongint;
       //e3=_cal(i,j,fS[i][j],min(min(e1,e2),fGood[i][j]));
       e3=fGood[i][j];
-      Point2d tp;
+      Point2i tp;
       if (e1<e2)
       {
         tp=fS[i-1][j];
@@ -248,10 +248,10 @@ double PMatch::doIter()
         alp*=ALPHA;
         //e2=_cal(i,j,fS[i][j],fGood[i][j]);
         e2=fGood[i][j];
-        e1=_cal(i,j,fS[i][j]+Point2d(ofx,ofy),fGood[i][j]);
+        e1=_cal(i,j,fS[i][j]+Point2i(ofx,ofy),fGood[i][j]);
         if (e1<e2)
         {
-          fS[i][j]=fS[i][j]+Point2d(ofx,ofy);
+          fS[i][j]=fS[i][j]+Point2i(ofx,ofy);
           fGood[i][j]=e1;
         }
         else
