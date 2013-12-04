@@ -202,8 +202,20 @@ int main(int argc, char *argv[])
     namedWindow("cropped",1);
     int lux,luy,rdx,rdy;
     //cout<<im1.rows<<' '<<im1.cols<<endl;
-    for (int mi=0;mi<im1.rows;mi+=10)
-      for (int mj=0;mj<im1.cols;mj+=10)
+    lux=max(-(fw-1)/2,0);
+    luy=max(-(fh-1)/2,0);
+    rdx=min(fw/2,im1.cols-1);
+    rdy=min(fh/2,im1.rows-1);
+    im2=im1(Rect(lux,luy,rdx-lux+1,rdy-luy+1));
+    nh=im2.rows;
+    nw=im2.cols;
+    Nt=nh*nw;
+    mc1.load(im1,im2);
+    mc1.init(false);
+    int lip=(fh-1)/2,ljp=(fw-1)/2;
+    int rip=fh/2,rjp=fw/2;
+    for (int mi=lip;mi+rip<im1.rows;mi++)
+      for (int mj=ljp;mj+rjp<im1.cols;mj++)
       {
         vmap.at<uchar>(mi,mj)=1;
         cout<<"calculating "<<mi<<','<<mj<<endl;
@@ -215,13 +227,13 @@ int main(int argc, char *argv[])
         nh=im2.rows;
         nw=im2.cols;
         Nt=nh*nw;
-                cout<<lux<<' '<<luy<<' '<<rdx<<' '<<rdy<<endl;
-        mc1.load(im1,im2);
-        mc1.init(false);
-        // mc2.load(im2,im1);
-        // mc2.init(false);
-        imshow("cropped",im2);
-        waitKey(100);
+        //cout<<lux<<' '<<luy<<' '<<rdx<<' '<<rdy<<endl;
+        if (mc1.reload(im2,false))
+          mc1.init(false);
+        else
+          mc1.reset();
+        // imshow("cropped",im2);
+        // waitKey(10);
         for (int it=1;it<=itnum;it++)
         {
           err1=mc1.doIter();
@@ -258,6 +270,8 @@ int main(int argc, char *argv[])
     imshow("dissValue",vmap);
     imshow("cropped",im2);
     waitKey(0);
+    imwrite("crop_"+string(argv[2])+".jpg",im2);
+    imwrite("dismap_"+string(argv[2])+".jpg",vmap);
   }
   
   if (!ran)
