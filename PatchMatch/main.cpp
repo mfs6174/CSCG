@@ -5,7 +5,7 @@ PMatch mc1=PMatch(),mc2=PMatch();
 vector< vector< vector<int> > > pool[2];
 vector< vector< vector<int> > >cnt;
 int nh=0,nw=0;
-double ta=0.5;
+double clAlpha=0.5;
 int bgit=2;
 int lhPatch=-(PATCH_SIZE-1)/2,rhPatch=PATCH_SIZE/2;
 void vote(Mat &im,int Ns,int Nt)
@@ -13,22 +13,25 @@ void vote(Mat &im,int Ns,int Nt)
   double ns=1.0/Ns,nt=1.0/Nt;
   pool[0]=pool[1]=( vector< vector< vector<int> > >(nh+1,vector< vector<int> >(nw+1,vector<int>(3,0) )) );
   cnt=vector< vector< vector<int> > >(nh+1,vector< vector<int> >(nw+1,vector<int>(2,0) ));
-  for (int x=1;x<=mc2.sh;x++)
-    for (int y=1;y<=mc2.sw;y++)
-    {
-      int xx=x+mc2.fS[x][y].x,yy=y+mc2.fS[x][y].y;
-      int i1=max(lhPatch,max(-x+1,-xx+1)),i2=min(rhPatch,min(mc1.sh-x,mc1.th-xx));
-      int j1=max(lhPatch,max(-y+1,-yy+1)),j2=min(rhPatch,min(mc1.sw-y,mc1.tw-yy));
-      for (int i=i1;i<=i2;i++)
-        for (int j=j1;j<=j2;j++)
-        {
-          Vec3b &v2=mc2.imgT.at<Vec3b>(xx+i-1,yy+j-1);
-          for (int k=0;k<3;k++)
-            pool[0][x+i][y+j][k]+=v2.val[k];
-          cnt[x+i][y+j][0]++;
-        }
-    }
-  if (ta>0)
+  if (clAlpha<1)
+  {
+    for (int x=1;x<=mc2.sh;x++)
+      for (int y=1;y<=mc2.sw;y++)
+      {
+        int xx=x+mc2.fS[x][y].x,yy=y+mc2.fS[x][y].y;
+        int i1=max(lhPatch,max(-x+1,-xx+1)),i2=min(rhPatch,min(mc2.sh-x,mc2.th-xx));
+        int j1=max(lhPatch,max(-y+1,-yy+1)),j2=min(rhPatch,min(mc2.sw-y,mc2.tw-yy));
+        for (int i=i1;i<=i2;i++)
+          for (int j=j1;j<=j2;j++)
+          {
+            Vec3b &v2=mc2.imgT.at<Vec3b>(xx+i-1,yy+j-1);
+            for (int k=0;k<3;k++)
+              pool[0][x+i][y+j][k]+=v2.val[k];
+            cnt[x+i][y+j][0]++;
+          }
+      }
+  }
+  if (clAlpha>0)
   {
     for (int x=1;x<=mc1.sh;x++)
       for (int y=1;y<=mc1.sw;y++)
@@ -52,7 +55,7 @@ void vote(Mat &im,int Ns,int Nt)
       Vec3b &v2=im.at<Vec3b>(i-1,j-1);
       for (int k=0;k<3;k++)
       {
-        v2.val[k]=(pool[0][i][j][k]*nt+pool[1][i][j][k]*ns)/(cnt[i][j][0]*nt+cnt[i][j][1]*ns);
+        v2.val[k]=(pool[0][i][j][k]*nt*(1-clAlpha)+pool[1][i][j][k]*ns*clAlpha)/(cnt[i][j][0]*nt*(1-clAlpha)+cnt[i][j][1]*ns*clAlpha);
       }
     }
 }
@@ -68,7 +71,7 @@ int main(int argc, char *argv[])
   if (string(argv[1])=="rec")
   {
     ran=true;
-    ta=0.5;
+    clAlpha=0.0;
     int itnum;
     cout<<"input patchMatch iteration times"<<endl;
     cin>>itnum;
@@ -213,8 +216,8 @@ int main(int argc, char *argv[])
     mc1.init(false);
     int lip=(fh-1)/2,ljp=(fw-1)/2;
     int rip=fh/2,rjp=fw/2;
-    for (int mi=lip;mi+rip<im1.rows;mi++)
-      for (int mj=ljp;mj+rjp<im1.cols;mj++)
+    for (int mi=lip;mi+rip<im1.rows;mi+=10)
+      for (int mj=ljp;mj+rjp<im1.cols;mj+=10)
       {
         vmap.at<uchar>(mi,mj)=1;
         cout<<"calculating "<<mi<<','<<mj<<endl;
@@ -231,8 +234,8 @@ int main(int argc, char *argv[])
           mc1.init(false);
         else
           mc1.reset();
-        // imshow("cropped",im2);
-        // waitKey(10);
+        imshow("cropped",im2);
+         waitKey(100);
         for (int it=1;it<=itnum;it++)
         {
           err1=mc1.doIter();
