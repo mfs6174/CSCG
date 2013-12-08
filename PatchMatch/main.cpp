@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
   if (string(argv[1])=="rec")
   {
     ran=true;
-    clAlpha=0.0;
+    clAlpha=0.5;
     int itnum;
     cout<<"input patchMatch iteration times"<<endl;
     cin>>itnum;
@@ -113,6 +113,105 @@ int main(int argc, char *argv[])
       cout<<"done ts iter with "<<err2<<endl;
       cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
     }
+  }
+  if (string(argv[1])=="c2fret")
+  {
+    ran=true;
+    bgit=0;
+    int itnum,rnum,pmnum;
+    int fw,fh,ffw,ffh;
+    double err1,err2;
+    cout<<"input iteration times,resize times,patchMatch iteration times"<<endl;
+    cin>>itnum>>rnum>>pmnum;
+    cout<<"intput new width height"<<endl;
+    cin>>fw>>fh;
+    Mat im1,im2;
+    im1=imread(string(argv[2]));
+    vector<Mat> im1Pymd;
+    int mLev=ceil(log(min(fw,fh)))-1;
+    resize(im1,im2,Size(fw,fh));
+    buildPyramid(im2,im1Pymd,mLev);
+    ffw=im1Pymd[mLev].cols;
+    ffh=im1Pymd[mLev].rows;
+    buildPyramid(im1,im1Pymd,mLev);
+    int Nt,Ns=im1.cols*im1.rows;
+    im1Pymd[mLev].copyTo(im2);
+    nw=im2.cols;
+    nh=im2.rows;
+    Nt=nw*nh;
+    namedWindow("target",1);
+    for (int ttt=1;ttt<=rnum;ttt++)
+    {
+      //int titnum=itnum+itnum*(double)(ttt-1)/(itnum-1);
+      int titnum=itnum;
+      mc1.load(im1,im2);
+      mc2.load(im2,im1);
+      mc1.init(false);
+      mc2.init(false);
+      for (int it=1;it<=titnum;it++)
+      {
+        for (int pit=1;pit<=pmnum;pit++)
+        {
+          err1=mc1.doIter();
+          cout<<"done st iter with "<<err1<<endl;
+          err2=mc2.doIter();
+          cout<<"done ts iter with "<<err2<<endl;
+        }
+        cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
+        vote(im2,Ns,Nt);
+        cout<<"done voting"<<endl;
+        imshow("target",im2);
+        waitKey(300);
+        if (it>bgit)
+        {
+          mc1.reload(im2,false);
+          mc2.reload(im2,true);
+        }
+      }
+      Mat imt;
+      resize(im2,imt,Size( im1Pymd[mLev].cols*((double)ffw/im1Pymd[mLev].cols+(1-(double)ffw/im1Pymd[mLev].cols)*(rnum-ttt)/rnum),im1Pymd[mLev].rows*((double)ffh/im1Pymd[mLev].rows+(1-(double)ffh/im1Pymd[mLev].rows)*(rnum-ttt)/rnum) ),0,0,CV_INTER_AREA);
+      im2=imt;
+      nw=im2.cols;
+      nh=im2.rows;
+      Nt=nw*nh;
+      stringstream id;
+      id<<ttt;
+      imwrite("img_"+string(argv[2])+id.str()+".jpg",im2);
+    }
+    for (int lev=mLev-1;lev>=0;lev--)
+    {
+       int Nt,Ns=im1.cols*im1.rows;
+       im1Pymd[lev].copyTo(im2);
+       nw=im2.cols;
+       nh=im2.rows;
+       Nt=nw*nh;
+      int titnum=itnum;
+      mc1.load(im1,im2);
+      mc2.load(im2,im1);
+      mc1.init(false);
+      mc2.init(false);
+      for (int it=1;it<=titnum;it++)
+      {
+        for (int pit=1;pit<=pmnum;pit++)
+        {
+          err1=mc1.doIter();
+          cout<<"done st iter with "<<err1<<endl;
+          err2=mc2.doIter();
+          cout<<"done ts iter with "<<err2<<endl;
+        }
+        cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
+        vote(im2,Ns,Nt);
+        cout<<"done voting"<<endl;
+        imshow("target",im2);
+        waitKey(300);
+        if (it>bgit)
+        {
+          mc1.reload(im2,false);
+          mc2.reload(im2,true);
+        }
+      }
+    }
+    
   }
   if (string(argv[1])=="ret")
   {
