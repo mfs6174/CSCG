@@ -23,7 +23,7 @@ struct PMatch
   int _cal(int x,int y,Point2i pnt,int pmax);
   int load(Mat _s,Mat _t);
   int reload(Mat _s,bool _wh);
-  int reset();
+  int reset(bool only);
   int init(bool _both);
   double doIter();
 };

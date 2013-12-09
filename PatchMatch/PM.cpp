@@ -56,6 +56,7 @@ int PMatch::reload(Mat _s,bool _wh)
       rt=1;
     _s.copyTo(imgT);
   }
+  reset(true);
   return rt;
 }
 
@@ -182,10 +183,11 @@ int PMatch::init(bool _both)
   return 0;
 }
 
-int PMatch::reset()
+int PMatch::reset(bool onlyReCal)
 {
   iTimes=0;
-  fS=initFs;
+  if (!onlyReCal)
+    fS=initFs;
   for (int i=1;i<=sh;i++)
     for (int j=1;j<=sw;j++)
       fGood[i][j]=_cal(i,j,fS[i][j],maxlongint);
