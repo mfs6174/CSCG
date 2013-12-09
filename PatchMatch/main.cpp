@@ -128,24 +128,26 @@ int main(int argc, char *argv[])
     Mat im1,im2;
     im1=imread(string(argv[2]));
     vector<Mat> im1Pymd;
-    int mLev=ceil(log(min(fw,fh)))-1;
+    int mLev=ceil(log(min(fw,fh)))-3;
     resize(im1,im2,Size(fw,fh));
     buildPyramid(im2,im1Pymd,mLev);
     ffw=im1Pymd[mLev].cols;
     ffh=im1Pymd[mLev].rows;
+    cout<<ffw<<' '<<ffh<<endl;
     buildPyramid(im1,im1Pymd,mLev);
-    int Nt,Ns=im1.cols*im1.rows;
+    int Nt,Ns=im1Pymd[mLev].cols*im1Pymd[mLev].rows;
     im1Pymd[mLev].copyTo(im2);
     nw=im2.cols;
     nh=im2.rows;
     Nt=nw*nh;
     namedWindow("target",1);
-    for (int ttt=1;ttt<=rnum;ttt++)
+    cout<<"level max,gradually resizing"<<endl;
+    for (int ttt=0;ttt<=rnum;ttt++)
     {
       //int titnum=itnum+itnum*(double)(ttt-1)/(itnum-1);
       int titnum=itnum;
-      mc1.load(im1,im2);
-      mc2.load(im2,im1);
+      mc1.load(im1Pymd[mLev],im2);
+      mc2.load(im2,im1Pymd[mLev]);
       mc1.init(false);
       mc2.init(false);
       for (int it=1;it<=titnum;it++)
@@ -168,26 +170,30 @@ int main(int argc, char *argv[])
           mc2.reload(im2,true);
         }
       }
+      stringstream id,idL;
+      id<<ttt;
+      id<<mLev;
+      imwrite("img_"+string(argv[2])+"__"+id.str()+"_level"+idL.str()+".jpg",im2);
+      if (ttt==rnum)
+        break;
       Mat imt;
-      resize(im2,imt,Size( im1Pymd[mLev].cols*((double)ffw/im1Pymd[mLev].cols+(1-(double)ffw/im1Pymd[mLev].cols)*(rnum-ttt)/rnum),im1Pymd[mLev].rows*((double)ffh/im1Pymd[mLev].rows+(1-(double)ffh/im1Pymd[mLev].rows)*(rnum-ttt)/rnum) ),0,0,CV_INTER_AREA);
+      resize(im2,imt,Size( im1Pymd[mLev].cols*((double)ffw/im1Pymd[mLev].cols+(1-(double)ffw/im1Pymd[mLev].cols)*(rnum-ttt-1)/rnum),im1Pymd[mLev].rows*((double)ffh/im1Pymd[mLev].rows+(1-(double)ffh/im1Pymd[mLev].rows)*(rnum-ttt-1)/rnum) ),0,0,CV_INTER_AREA);
       im2=imt;
       nw=im2.cols;
       nh=im2.rows;
       Nt=nw*nh;
-      stringstream id;
-      id<<ttt;
-      imwrite("img_"+string(argv[2])+id.str()+".jpg",im2);
     }
     for (int lev=mLev-1;lev>=0;lev--)
     {
-       int Nt,Ns=im1.cols*im1.rows;
-       im1Pymd[lev].copyTo(im2);
-       nw=im2.cols;
-       nh=im2.rows;
-       Nt=nw*nh;
+      cout<<"processing level "<<lev<<endl;
+      Ns=im1Pymd[lev].cols*im1Pymd[lev].rows;
+      pyrUp(im2,im2);
+      nw=im2.cols;
+      nh=im2.rows;
+      Nt=nw*nh;
       int titnum=itnum;
-      mc1.load(im1,im2);
-      mc2.load(im2,im1);
+      mc1.load(im1Pymd[lev],im2);
+      mc2.load(im2,im1Pymd[lev]);
       mc1.init(false);
       mc2.init(false);
       for (int it=1;it<=titnum;it++)
@@ -210,8 +216,12 @@ int main(int argc, char *argv[])
           mc2.reload(im2,true);
         }
       }
+      stringstream idL;
+      idL<<lev;
+      imwrite("img_"+string(argv[2])+"_level"+idL.str()+".jpg",im2);
     }
-    
+    imshow("target",im2);
+    waitKey(0);
   }
   if (string(argv[1])=="ret")
   {
@@ -332,7 +342,7 @@ int main(int argc, char *argv[])
         if (mc1.reload(im2,false))
           mc1.init(false);
         else
-          mc1.reset();
+          mc1.reset(false);
         imshow("cropped",im2);
          waitKey(100);
         for (int it=1;it<=itnum;it++)
