@@ -6,6 +6,7 @@ vector< vector< vector<int> > > pool[2];
 vector< vector< vector<int> > >cnt;
 int nh=0,nw=0;
 double clAlpha=0.5;
+double sizeLOD=2,levLOD=2;
 int bgit=2;
 int lhPatch=-(PATCH_SIZE-1)/2,rhPatch=PATCH_SIZE/2;
 void vote(Mat &im,int Ns,int Nt)
@@ -144,8 +145,10 @@ int main(int argc, char *argv[])
     cout<<"level max,gradually resizing"<<endl;
     for (int ttt=0;ttt<=rnum;ttt++)
     {
+      int titnum=itnum+sizeLOD*ttt*(itnum/3);
       //int titnum=itnum+itnum*(double)(ttt-1)/(itnum-1);
-      int titnum=itnum;
+      cout<<"iterate times for this size: "<<titnum<<endl;
+      //int titnum=itnum;
       mc1.load(im1Pymd[mLev],im2);
       mc2.load(im2,im1Pymd[mLev]);
       mc1.init(false);
@@ -191,7 +194,7 @@ int main(int argc, char *argv[])
       nw=im2.cols;
       nh=im2.rows;
       Nt=nw*nh;
-      int titnum=itnum;
+      int titnum=itnum+levLOD*(itnum/3)*(lev+1);
       mc1.load(im1Pymd[lev],im2);
       mc2.load(im2,im1Pymd[lev]);
       mc1.init(false);
