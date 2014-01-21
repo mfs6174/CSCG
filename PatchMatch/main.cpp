@@ -5,8 +5,9 @@ PMatch mc1=PMatch(),mc2=PMatch();
 vector< vector< vector<int> > > pool[2];
 vector< vector< vector<int> > >cnt;
 int nh=0,nw=0;
-double clAlpha=0.5;
-double sizeLOD=2,levLOD=2;
+double clAlpha=0.7;
+double sizeLOD=2,levLOD=3;
+int minLevConst=3;
 int bgit=2;
 int lhPatch=-(PATCH_SIZE-1)/2,rhPatch=PATCH_SIZE/2;
 void vote(Mat &im,int Ns,int Nt)
@@ -129,7 +130,16 @@ int main(int argc, char *argv[])
     Mat im1,im2;
     im1=imread(string(argv[2]));
     vector<Mat> im1Pymd;
-    int mLev=ceil(log(min(fw,fh)))-3;
+    int mLev=ceil(log(min(fw,fh)))-minLevConst;
+    double sgMin=exp(mLev+minLevConst-1+0.5),sgMax=exp(mLev+minLevConst);
+    if (min(fw,fh)<sgMin)
+    {
+      cout<<"suggest to set the min dimension to "<<sgMin<<" to "<<sgMax<<" input again(y/N)"<<endl;
+      char iptC;
+      cin>>iptC;
+      if (iptC=='Y' or iptC=='y')
+        cin>>fw>>fh;
+    }
     resize(im1,im2,Size(fw,fh));
     buildPyramid(im2,im1Pymd,mLev);
     ffw=im1Pymd[mLev].cols;
@@ -153,6 +163,7 @@ int main(int argc, char *argv[])
       mc2.load(im2,im1Pymd[mLev]);
       mc1.init(false);
       mc2.init(false);
+      double lastErr=0;
       for (int it=1;it<=titnum;it++)
       {
         for (int pit=1;pit<=pmnum;pit++)
@@ -162,16 +173,21 @@ int main(int argc, char *argv[])
           err2=mc2.doIter();
           cout<<"done ts iter with "<<err2<<endl;
         }
-        cout<<"done with D="<<err1/Ns+err2/Nt<<endl;
+        double thisErr=err1/Ns+err2/Nt;
+        cout<<"done with D="<<thisErr<<endl;
         vote(im2,Ns,Nt);
         cout<<"done voting"<<endl;
         imshow("target",im2);
-        waitKey(300);
+        waitKey(2);
         if (it>bgit)
         {
           mc1.reload(im2,false);
           mc2.reload(im2,true);
         }
+        if (abs(lastErr-thisErr)<0.1)
+          break;
+        else
+          lastErr=thisErr;
       }
       stringstream id,idL;
       id<<ttt;
@@ -212,7 +228,7 @@ int main(int argc, char *argv[])
         vote(im2,Ns,Nt);
         cout<<"done voting"<<endl;
         imshow("target",im2);
-        waitKey(300);
+        waitKey(50);
         if (it>bgit)
         {
           mc1.reload(im2,false);
