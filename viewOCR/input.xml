@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<root>
+     <input>
+       <!--<filename>e:\liubin\project\image_ocr\text_recognition\data\test-textloc-gt\392.jpg</filename>-->
+       <imgBase>I:\huangshisheng\project\data\mydata\case2\</imgBase>
+	   <imgSaveBase>I:\huangshisheng\project\data\mydata\res2\</imgSaveBase>
+	   <imgNum>80</imgNum>
+    </input>
+
+    <parameter>
+    	<mean-shift sp="10" sr="40" />
+    	<bilateral size1="10" size2="0" sigma1="1" sigma2="1" />
+    	<swt canny-non-edge-ratio="0.95" dark-on-light="1" fliter-variance-mean-ratio="2.0"/>
+    	<segment sigma=".01" c="1" min-size="2" />
+    	<merge color-thres="30" swt-thres="10" />
+    </parameter>
+
+</root>
