@@ -23,7 +23,6 @@ namespace Core{
 			ocr.loadConfig("config.xml");
 			ocr.textDetection();
 			string text = ocr.getDetectText();
-
 			// save 
 			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_ray.png");
 			IplImage* output1 = cvLoadImage("rays.png" , 1);

@@ -1,6 +1,7 @@
 #ifndef MYORCER_H
 #define MYORCER_H
-
+#include "SWT/TextDetection.h"
+#include "Tesseract/TessWrapper.h"
 
 namespace Core{
 
@@ -16,11 +17,11 @@ namespace Core{
 		void textDetection();
 
 		string getDetectText(){ return text_detect;}
-
+		IplImage* img;
 	private:
 		TessWrapper myTessWrapper;
 		string text_detect;
-		IplImage* img;
+		
 	};
 }
 

@@ -42,8 +42,8 @@
 #include <algorithm>
 #include <vector>
 #include "TextDetection.h"
-#include "..\helpfunc.h"
-#include "..\config.h"
+#include "../helpfunc.h"
+#include "../config.h"
 
 #define PI 3.14159265
 
@@ -1213,7 +1213,7 @@ void visualize_rays(std::vector<Ray> rays, IplImage *src, char *name) {
 			cvCircle(showImage, cvPoint(pit->x, pit->y), 1, s);
 		}
 	}
-	char *save_name = name ? name : "rays.png";
+	const char *save_name = name ? name : "rays.png";
 	cvSaveImage(save_name, showImage);
 	cvReleaseImage(&showImage);
 }

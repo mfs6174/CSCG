@@ -1,4 +1,5 @@
-#pragma once
+#ifndef XMLDOC_H
+#define XMLDOC_H
 
 #include <vector>
 #include <map>
@@ -26,78 +27,7 @@ namespace tixml{
 
 	class XMLNode;
 	class XMLNodeList;
-
-	class XMLNodeList{
-	public:
-
-		unsigned int length() const;
-
-		XMLNodeList get(const std::string& key) const;
-
-		XMLNode& operator [] (unsigned int i) const{
-			assert(i>=0 && i<length());
-			return *(m_list[i]);
-		}
-
-		XMLNode& operator () (const std::string& key, unsigned int i) const{
-			return get(key)[i];
-		}
-
-		template <typename T> std::vector<T> get(const std::string& keyAndAttrib) const{			
-
-			std::string::size_type pos = keyAndAttrib.find_last_of("@");
-			
-			if(pos!=std::string::npos){
-				std::string key = keyAndAttrib.substr(0,pos-1);
-				std::string attrib = keyAndAttrib.substr(pos+1);
-
-				XMLNodeList list = get(key);
-
-				std::vector<T> res(list.length());
-				for(unsigned int i=0;i<list.length();i++){
-					res[i] = list.getNode(i)->attrib<T>(attrib);
-				}
-				return res;
-			} else {
-				XMLNodeList list = get(keyAndAttrib);
-				std::vector<T> res(list.length());
-				for(unsigned int i=0;i<list.length();i++){
-					res[i] = list.getNode(i)->text<T>();
-				}
-				return res;
-			}
-		}
-		template <typename T> T get(const std::string& keyAndAtrrib,unsigned int i) const{			
-			return get<T>(keyAndAtrrib)[i];
-		}
-
-	public: 
-		XMLNodeList();
-		XMLNodeList(const XMLNodeList& list){
-			m_list = list.m_list;
-		}
-		XMLNodeList(const std::vector<XMLNode* > & list){
-			m_list = list;
-		}
-
-		void removeNode(unsigned int i) {
-			m_list.erase(m_list.begin() + i);
-		}
-		XMLNode* getNode(unsigned int i) {
-			assert(i>=0 && i<length());
-			return m_list[i];
-		}
-		void addNode(XMLNode* newNode){
-			m_list.push_back(newNode);
-		}
-
-	protected:
-		XMLNodeList getChildNodeList(const std::string& name) const;
-
-		std::vector<XMLNode* > m_list;
-
-	};
-
+	
 	class XMLNode{
 	public:
 
@@ -150,11 +80,7 @@ namespace tixml{
 			return m_attribs;
 		}
 
-		XMLNodeList asNodeList(){
-			std::vector<XMLNode* > list;
-			list.push_back(this);
-			return XMLNodeList(list);
-		}
+		XMLNodeList asNodeList();
 
 	public:
 		XMLNodeList getRecurNodeList(std::string& key) const;
@@ -165,6 +91,78 @@ namespace tixml{
 		std::string m_text;
 		std::map<std::string,std::string> m_attribs;
 	};
+	class XMLNodeList{
+	public:
+
+		unsigned int length() const;
+
+		XMLNodeList get(const std::string& key) const;
+
+		XMLNode& operator [] (unsigned int i) const{
+			assert(i>=0 && i<length());
+			return *(m_list[i]);
+		}
+
+		XMLNode& operator () (const std::string& key, unsigned int i) const{
+			return get(key)[i];
+		}
+
+			template <typename T> std::vector<T> get(const std::string& keyAndAttrib) const{			
+
+			std::string::size_type pos = keyAndAttrib.find_last_of("@");
+			
+			if(pos!=std::string::npos){
+				std::string key = keyAndAttrib.substr(0,pos-1);
+				std::string attrib = keyAndAttrib.substr(pos+1);
+
+				XMLNodeList list = get(key);
+
+				std::vector<T> res(list.length());
+				for(unsigned int i=0;i<list.length();i++){
+					res[i] = list.getNode(i)->attrib<T>(attrib);
+				}
+				return res;
+			} else {
+				XMLNodeList list = get(keyAndAttrib);
+				std::vector<T> res(list.length());
+				for(unsigned int i=0;i<list.length();i++){
+					res[i] = list.getNode(i)->text<T>();
+				}
+				return res;
+			}
+		}
+		template <typename T> T get(const std::string& keyAndAtrrib,unsigned int i) const{			
+			return (get<T>(keyAndAtrrib))[i];
+		}
+
+	public: 
+		XMLNodeList();
+		XMLNodeList(const XMLNodeList& list){
+			m_list = list.m_list;
+		}
+		XMLNodeList(const std::vector<XMLNode* > & list){
+			m_list = list;
+		}
+
+		void removeNode(unsigned int i) {
+			m_list.erase(m_list.begin() + i);
+		}
+		XMLNode* getNode(unsigned int i) {
+			assert(i>=0 && i<length());
+			return m_list[i];
+		}
+		void addNode(XMLNode* newNode){
+			m_list.push_back(newNode);
+		}
+
+	protected:
+		XMLNodeList getChildNodeList(const std::string& name) const;
+
+		std::vector<XMLNode* > m_list;
+
+	};
+
+	
 
 	class XMLDoc
 	{
@@ -226,4 +224,4 @@ namespace tixml{
 //}
 //
 
-
+#endif

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "../stdafx.h"
 #include "XMLDoc.h"
 
 #include <assert.h>
@@ -137,7 +137,8 @@ namespace tixml{
 	XMLNodeList XMLNodeList::get(const std::string& key) const {
 		
 		vector<string> keys;
-		split(keys,trim_copy(key),is_any_of("."));
+		string tmpstring=trim_copy(key);
+		split(keys,tmpstring,is_any_of("."));
 		
 		XMLNodeList res(*this);
 		for(unsigned int i=0;i<keys.size();i++) {
@@ -145,8 +146,18 @@ namespace tixml{
 		}		
 		return res;
 	}
+
+XMLNodeList XMLNode::asNodeList(){
+				std::vector<XMLNode* > list;
+				list.push_back(this);
+				return XMLNodeList(list);
 }
 
+
+
+}
+
+			
 //string XMLNodeList::attrib(const std::string& name,unsigned int i) const{
 //	assert(i>=0 && i < length());
 //	return m_list[i]->attribs[name];

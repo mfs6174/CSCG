@@ -10,11 +10,15 @@
 #ifdef WINAPP
 
 #include "targetver.h"
+#include <tchar.h>
+
+#else
+
+#include "auto_tchar.h"
 
 #endif
 
 #include <stdio.h>
-#include <tchar.h>
 
 
 

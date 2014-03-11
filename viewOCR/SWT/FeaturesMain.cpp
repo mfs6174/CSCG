@@ -22,6 +22,7 @@
 #include <opencv/highgui.h>
 #include <exception>
 
+using namespace swt;
 void convertToFloatImage ( IplImage * byteImage, IplImage * floatImage )
 {
   cvConvertScale ( byteImage, floatImage, 1 / 255., 0 );

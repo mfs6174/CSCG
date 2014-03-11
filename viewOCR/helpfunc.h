@@ -1,6 +1,6 @@
 #ifndef HELPFUNC_H
 #define HELPFUNC_H
-
+#include "stdafx.h"
 
 CvScalar operator * (CvScalar &s, float c);
 CvScalar operator + (CvScalar &s, CvScalar &c);

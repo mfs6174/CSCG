@@ -1,0 +1,12 @@
+LIB_DIR=-L/usr/lib -L/usr/lib/i386-linux-gnu/
+INC_DIR=/usr/include 
+LINK_LIB=-llept -ltesseract
+OPENCV_STAFF=`pkg-config --libs --cflags opencv`
+BOOST_STAFF=-L/usr/include/boost  /usr/lib/i386-linux-gnu/libboost_graph.so /usr/lib/i386-linux-gnu/libboost_iostreams.so /usr/lib/i386-linux-gnu/libboost_locale.so
+
+
+GPP_DEBUG=g++ -g -pg -Wall -std=c++11 $(LIB_DIR) -I$(INC_DIR) $(LINK_LIB) $(OPENCV_STAFF) $(BOOST_STAFF) -msse -msse2 -msse3 -o
+GPP=$(GPP_DEBUG)
+GCC=$(GPP_DEBUG)
+ARR=ar -crvs 
+

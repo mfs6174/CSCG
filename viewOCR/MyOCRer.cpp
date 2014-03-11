@@ -54,7 +54,11 @@ namespace Core{
 		cvThreshold(new_swt_text, new_swt_text, 254, 255, CV_THRESH_BINARY);
 		cvSaveImage("swt.tif", new_swt_text);
 		char * text = myTessWrapper.recognize("swt.tif", ocr_lang);
+#ifdef WINAPP
 		text_detect = UTF8ToGBK(text);
-		std::cout << UTF8ToGBK( text ) << std::endl;
+#else
+		text_detect=text;
+#endif
+		std::cout << text_detect << std::endl;
 	}
 }

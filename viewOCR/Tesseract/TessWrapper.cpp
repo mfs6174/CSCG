@@ -1,5 +1,5 @@
-#include "../stdafx.h"
 #include "tesseract/baseapi.h"
+#include "../stdafx.h"
 #include "leptonica/allheaders.h"
 #include "TessWrapper.h"
 
