@@ -37,6 +37,11 @@ int PMatch::load(Mat _s,Mat _t)
   th=_t.rows;
   if (sw<1||sh<1||tw<1||th<1)
     return -1;
+  Mat tmps(sh,sw,CV_32FC3),tmpt(th,tw,CV_32FC3);
+  cvtColor(imgS,tmps,CV_RGB2Lab);
+  cvtColor(imgT,tmpt,CV_RGB2Lab);
+  imgS=tmps;
+  imgT=tmpt;
   loaded=true;
   return 0;
 }
@@ -49,12 +54,18 @@ int PMatch::reload(Mat _s,bool _wh)
     if ( (imgS.cols!=_s.cols) || (imgS.rows!=_s.rows) )
       rt=1;
     _s.copyTo(imgS);
+    Mat tmps(sh,sw,CV_32FC3);
+    cvtColor(imgS,tmps,CV_RGB2Lab);
+    imgS=tmps;
   }
   else
   {
     if ( (imgT.cols!=_s.cols) || (imgT.rows!=_s.rows) )
       rt=1;
     _s.copyTo(imgT);
+    Mat tmps(th,tw,CV_32FC3);
+    cvtColor(imgT,tmps,CV_RGB2Lab);
+    imgT=tmps;
   }
   reset(true);
   return rt;
@@ -74,44 +85,45 @@ inline bool PMatch::_cplt(int x,int y,Point2i ofs)
     return false;
 }
 
-int PMatch::_moveDown(int x,int y)
+double PMatch::_moveDown(int x,int y)
 {
   if (fGood[x][y]==maxlongint)
     return maxlongint;
-  int rt=fGood[x][y]*sqrPsize;
+  double rt=fGood[x][y]*sqrPsize;
   for (int j=-lhPatch;j<=rhPatch;j++)
   {
-    Vec3b &v1=imgS.at<Vec3b>(x-lhPatch-1,y+j-1);
-    Vec3b &v2=imgT.at<Vec3b>(x+fS[x][y].x-lhPatch-1,y+fS[x][y].y+j-1);
+    Vec3f &v1=imgS.at<Vec3f>(x-lhPatch-1,y+j-1);
+    Vec3f &v2=imgT.at<Vec3f>(x+fS[x][y].x-lhPatch-1,y+fS[x][y].y+j-1);
     rt-=sqr(v1.val[0]-v2.val[0])+sqr(v1.val[1]-v2.val[1])+sqr(v1.val[2]-v2.val[2]);
-    Vec3b &v3=imgS.at<Vec3b>(x+rhPatch,y+j-1);
-    Vec3b &v4=imgT.at<Vec3b>(x+fS[x][y].x+rhPatch,y+fS[x][y].y+j-1);
+    Vec3f &v3=imgS.at<Vec3f>(x+rhPatch,y+j-1);
+    Vec3f &v4=imgT.at<Vec3f>(x+fS[x][y].x+rhPatch,y+fS[x][y].y+j-1);
     rt+=sqr(v3.val[0]-v4.val[0])+sqr(v3.val[1]-v4.val[1])+sqr(v3.val[2]-v4.val[2]);
   }
   return rt/sqrPsize;
 }
 
-int PMatch::_moveRight(int x,int y)
+double PMatch::_moveRight(int x,int y)
 {
   if (fGood[x][y]==maxlongint)
     return maxlongint;
-  int rt=fGood[x][y]*sqrPsize;
+  double rt=fGood[x][y]*sqrPsize;
   for (int i=-lhPatch;i<=rhPatch;i++)
   {
-    Vec3b &v1=imgS.at<Vec3b>(x+i-1,y-lhPatch-1);
-    Vec3b &v2=imgT.at<Vec3b>(x+fS[x][y].x+i-1,y+fS[x][y].y-lhPatch-1);
+    Vec3f &v1=imgS.at<Vec3f>(x+i-1,y-lhPatch-1);
+    Vec3f &v2=imgT.at<Vec3f>(x+fS[x][y].x+i-1,y+fS[x][y].y-lhPatch-1);
     rt-=sqr(v1.val[0]-v2.val[0])+sqr(v1.val[1]-v2.val[1])+sqr(v1.val[2]-v2.val[2]);
-    Vec3b &v3=imgS.at<Vec3b>(x+i-1,y+rhPatch);
-    Vec3b &v4=imgT.at<Vec3b>(x+fS[x][y].x+i-1,y+fS[x][y].y+rhPatch);
+    Vec3f &v3=imgS.at<Vec3f>(x+i-1,y+rhPatch);
+    Vec3f &v4=imgT.at<Vec3f>(x+fS[x][y].x+i-1,y+fS[x][y].y+rhPatch);
     rt+=sqr(v3.val[0]-v4.val[0])+sqr(v3.val[1]-v4.val[1])+sqr(v3.val[2]-v4.val[2]);
   }
   return rt/sqrPsize;
 }
 
-int PMatch::_cal(int x,int y,Point2i pnt,int pmax)
+double PMatch::_cal(int x,int y,Point2i pnt,int pmax)
 {
   int xx=x+pnt.x,yy=y+pnt.y;
-  int vld=0,ssd=0;
+  int vld=0;
+  double ssd=0;
   if (xx<1)
     xx=1;
   if (xx>th)
@@ -134,8 +146,8 @@ int PMatch::_cal(int x,int y,Point2i pnt,int pmax)
     for (int j=j1;j<=j2;j++)
       {
           vld++;
-          Vec3b &v1=imgS.at<Vec3b>(x+i-1,y+j-1);
-          Vec3b &v2=imgT.at<Vec3b>(xx+i-1,yy+j-1);
+          Vec3f &v1=imgS.at<Vec3f>(x+i-1,y+j-1);
+          Vec3f &v2=imgT.at<Vec3f>(xx+i-1,yy+j-1);
           //cout<<(int)v1.val[0]<<endl;
           ssd+=sqr(v1.val[0]-v2.val[0])+sqr(v1.val[1]-v2.val[1])+sqr(v1.val[2]-v2.val[2]);
           if (ssd>pmax)
@@ -156,7 +168,7 @@ int PMatch::init(bool _both)
   sqrPsize=sqr(PATCH_SIZE);
   vlS.create(sh,sw,CV_8UC3);
   fS=initFs=vector< vector<Point2i> >(sh+1,vector<Point2i>(sw+1));
-  fGood=vector< vector<int> >(sh+1,vector<int>(sw+1,maxlongint));
+  fGood=vector< vector<double> >(sh+1,vector<double>(sw+1,maxlongint));
   for (int i=1;i<=sh;i++)
     for (int j=1;j<=sw;j++)
     {
@@ -202,7 +214,7 @@ double PMatch::doIter()
   for (int i=1;i<=sh;i++)
     for (int j=1;j<=sw;j++)
     {
-      int e1,e2,e3;
+      double e1,e2,e3;
       if (i>1)
       {
         if (_cplt(i-1,j,fS[i-1][j])&&_cplt(i,j,fS[i-1][j]))

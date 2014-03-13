@@ -9,7 +9,7 @@ struct PMatch
   Mat imgS,imgT;
   Mat vlS,vlT;
   vector< vector<Point2i> > fS,initFs;
-  vector< vector<int> >  fGood;
+  vector< vector<double> >  fGood;
   bool loaded;
   int sw,sh,tw,th;
   int iTimes;
@@ -18,9 +18,9 @@ struct PMatch
   PMatch();
   void _vl();
   bool _cplt(int x,int y,Point2i ofs);
-  int _moveDown(int x,int y);
-  int _moveRight(int x,int y);
-  int _cal(int x,int y,Point2i pnt,int pmax);
+  double _moveDown(int x,int y);
+  double _moveRight(int x,int y);
+  double _cal(int x,int y,Point2i pnt,int pmax);
   int load(Mat _s,Mat _t);
   int reload(Mat _s,bool _wh);
   int reset(bool only);
