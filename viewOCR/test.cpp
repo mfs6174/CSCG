@@ -24,22 +24,31 @@ namespace Core{
 			ocr.textDetection();
 			string text = ocr.getDetectText();
 			// save 
-			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_ray.png");
-			IplImage* output1 = cvLoadImage("rays.png" , 1);
+			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_ray0.png");
+			IplImage* output1 = cvLoadImage("rays0.png" , 1);
 			cvSaveImage(buf, output1);
+            sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_ray1.png");
+            output1 = cvLoadImage("rays1.png" , 1);
+            cvSaveImage(buf, output1);
 
-			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_swt.png");
-			IplImage* output2 = cvLoadImage("SWT.png" , 1);
+            sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_swt0.png");
+			IplImage* output2 = cvLoadImage("SWT0.png" , 1);
+			cvSaveImage(buf, output2);
+            sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_swt1.png");
+            output2 = cvLoadImage("SWT1.png" , 1);
 			cvSaveImage(buf, output2);		
 
-			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_cmp.png");
-			IplImage* output3 = cvLoadImage("components.png" , 1);
+			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_cmp0.png");
+			IplImage* output3 = cvLoadImage("components0.png" , 1);
+			cvSaveImage(buf, output3);
+            sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_cmp1.png");
+			output3 = cvLoadImage("components1.png" , 1);
 			cvSaveImage(buf, output3);
 
 			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_text.png");
 			IplImage* output4 = cvLoadImage("text.png" , 1);
 			cvSaveImage(buf, output4);
-
+            
 			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_canny.png");
 			IplImage* output5 = cvLoadImage("canny.png" , 1);
 			cvSaveImage(buf, output5);
@@ -47,6 +56,10 @@ namespace Core{
 			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , ".png");
 			//IplImage* output4 = cvLoadImage("text.png" , 1);
 			cvSaveImage(buf, output6);
+
+            sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_boxes.png");
+			IplImage* output7 = cvLoadImage("boxes.png" , 1);
+			cvSaveImage(buf, output7);
 
 			sprintf(buf, "%s%d%s" , imgSaveBase.c_str() , i , ".txt"); 
 			FILE *fp = fopen(buf, "w+");

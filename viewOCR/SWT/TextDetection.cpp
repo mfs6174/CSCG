@@ -210,6 +210,43 @@ void renderComponentsWithBoxes (IplImage * SWTImage, std::vector<std::vector<Poi
     }
 }
 
+  void renderImageWithBoxes (IplImage * input, std::vector<std::vector<Point2d> > & components,
+                             std::vector<std::pair<Point2d,Point2d> > & compBB, IplImage * output) {
+
+    std::vector<std::pair<CvPoint,CvPoint> > bb;
+    bb.reserve(compBB.size());
+    for (std::vector<std::pair<Point2d,Point2d> >::iterator it=compBB.begin(); it != compBB.end(); it++ ) {
+      bool fuked=false;
+      for (std::vector<std::pair<Point2d,Point2d> >::iterator nit=compBB.begin(); nit != compBB.end(); nit++ )
+      {
+        if (nit->first.x<it->first.x && nit->first.y<it->first.y && nit->second.x>it->second.x && nit->second.y>it->second.y)
+        {
+          fuked=true;
+          break;
+        }
+      }
+      if (fuked)
+        continue;
+      CvPoint p0 = cvPoint(it->first.x,it->first.y);
+      CvPoint p1 = cvPoint(it->second.x,it->second.y);
+      std::pair<CvPoint,CvPoint> pair(p0,p1);
+      bb.push_back(pair);
+    }
+    cvCvtColor (input, output, CV_GRAY2RGB);
+    //cvReleaseImage ( &outTemp );
+    //cvReleaseImage ( &out );
+
+    int count = 0;
+    for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
+        CvScalar c;
+        if (count % 3 == 0) c=cvScalar(255,0,0);
+        else if (count % 3 == 1) c=cvScalar(0,255,0);
+        else c=cvScalar(0,0,255);
+        count++;
+        cvRectangle(output,it->first,it->second,c,2);
+    }
+}
+
 void renderChainsWithBoxes (IplImage * SWTImage,
                    std::vector<std::vector<Point2d> > & components,
                    std::vector<Chain> & chains,
@@ -260,6 +297,7 @@ void renderChainsWithBoxes (IplImage * SWTImage,
 
 void renderChains (IplImage * SWTImage,
                    std::vector<std::vector<Point2d> > & components,
+                   std::vector<std::pair<Point2d,Point2d> > & compBB,
                    std::vector<Chain> & chains,
                    IplImage * output) {
     // keep track of included components
@@ -274,15 +312,19 @@ void renderChains (IplImage * SWTImage,
         }
     }
     std::vector<std::vector<Point2d> > componentsRed;
+    std::vector<std::pair<Point2d,Point2d> > BBred;
     for (unsigned int i = 0; i != components.size(); i++ ) {
         if (included[i]) {
             componentsRed.push_back(components[i]);
+            BBred.push_back(compBB[i]);
         }
     }
     std::cout << componentsRed.size() << " components after chaining" << std::endl;
     IplImage * outTemp =
             cvCreateImage ( cvGetSize ( output ), IPL_DEPTH_32F, 1 );
     renderComponents(SWTImage,componentsRed,outTemp);
+    components=componentsRed;
+    compBB=BBred;
     cvConvertScale(outTemp, output, 255, 0);
 	cvReleaseImage(&outTemp);
 }
@@ -346,7 +388,7 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
 {
     assert ( input->depth == IPL_DEPTH_8U );
     assert ( input->nChannels == 3 );
-    std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
+    std::cout << "Running textDetection with dark_on_light(actually both) " << dark_on_light << std::endl;
     // Convert to gray scale
     IplImage * grayImage =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
@@ -374,21 +416,32 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     cvSmooth(gradientX, gradientX, 3, 3);
     cvSmooth(gradientY, gradientY, 3, 3);
     cvReleaseImage ( &gaussianImage );
-    cvReleaseImage ( &grayImage );
 
     // Calculate SWT and return ray vectors
-    std::vector<Ray> rays;
+    std::vector<Ray> rays,rays1;
     IplImage * SWTImage =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
+      cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
+    IplImage * SWTImage1 =
+      cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
     for( int row = 0; row < input->height; row++ ){
-        float* ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-        for ( int col = 0; col < input->width; col++ ){
-            *ptr++ = -1;
-        }
+      float* ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
+      for ( int col = 0; col < input->width; col++ ){
+        *ptr++ = -1;
+      }
     }
-    strokeWidthTransform ( edgeImage, gradientX, gradientY, dark_on_light, SWTImage, rays );
+    for( int row = 0; row < input->height; row++ ){
+      float* ptr = (float*)(SWTImage1->imageData + row * SWTImage1->widthStep);
+      for ( int col = 0; col < input->width; col++ ){
+        *ptr++ = -1;
+      }
+    }
+
+    strokeWidthTransform ( edgeImage, gradientX, gradientY, false, SWTImage, rays );
+    strokeWidthTransform ( edgeImage, gradientX, gradientY, true, SWTImage1, rays1 );
     SWTMedianFilter ( SWTImage, rays );
-	visualize_rays(rays, input);
+    SWTMedianFilter ( SWTImage1, rays1 );
+	visualize_rays(false,rays, input);
+    visualize_rays(true,rays1, input);
 
     IplImage * output2 =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
@@ -396,7 +449,10 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     IplImage * saveSWT =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
     cvConvertScale(output2, saveSWT, 255, 0);
-    cvSaveImage ( "SWT.png", saveSWT);
+    cvSaveImage ( "SWT0.png", saveSWT);
+    normalizeImage (SWTImage1, output2);
+    cvConvertScale(output2, saveSWT, 255, 0);
+    cvSaveImage ( "SWT1.png", saveSWT);
     cvReleaseImage ( &output2 );
     cvReleaseImage( &saveSWT );
 
@@ -404,28 +460,57 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     // return type is a vector of vectors, where each outer vector is a component and
     // the inner vector contains the (y,x) of each pixel in that component.
     std::vector<std::vector<Point2d> > components = findLegallyConnectedComponents(SWTImage, rays);
-
+    std::vector<std::vector<Point2d> > components1 = findLegallyConnectedComponents(SWTImage1, rays1);
     // Filter the components
     std::vector<std::vector<Point2d> > validComponents;
     std::vector<std::pair<Point2d,Point2d> > compBB;
     std::vector<Point2dFloat> compCenters;
     std::vector<float> compMedians;
     std::vector<Point2d> compDimensions;
-    filterComponents(SWTImage, components, validComponents, compCenters, compMedians, compDimensions, compBB );
 
+    std::vector<std::vector<Point2d> > validComponents1;
+    std::vector<std::pair<Point2d,Point2d> > compBB1;
+    std::vector<Point2dFloat> compCenters1;
+    std::vector<float> compMedians1;
+    std::vector<Point2d> compDimensions1;
+
+    filterComponents(SWTImage, components, validComponents, compCenters, compMedians, compDimensions, compBB );
+    filterComponents(SWTImage1, components1, validComponents1, compCenters1, compMedians1, compDimensions1, compBB1 );
     IplImage * output3 =
             cvCreateImage ( cvGetSize ( input ), 8U, 3 );
     renderComponentsWithBoxes (SWTImage, validComponents, compBB, output3);
-    cvSaveImage ( "components.png",output3);
+    cvSaveImage ( "components0.png",output3);
+    renderComponentsWithBoxes (SWTImage1, validComponents1, compBB1, output3);
+    cvSaveImage ( "components1.png",output3);
     cvReleaseImage ( &output3 );
-
+    
     // Make chains of components
-    std::vector<Chain> chains;
+    std::vector<Chain> chains,chains1;
     chains = makeChains(input, validComponents, compCenters, compMedians, compDimensions, compBB);
-
+    chains1 = makeChains(input, validComponents1, compCenters1, compMedians1, compDimensions1, compBB1);
     IplImage * output4 =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
-    renderChains ( SWTImage, validComponents, chains, output4 );
+    IplImage * output41 =
+      cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
+
+    renderChains ( SWTImage, validComponents, compBB,chains, output4 );
+    renderChains ( SWTImage1, validComponents1, compBB1,chains1, output41 );
+
+
+    std::vector<std::vector<Point2d> > validComponentsM(validComponents);
+    std::vector<std::pair<Point2d,Point2d> > compBBM(compBB);
+    validComponentsM.insert(validComponentsM.begin(),validComponents1.begin(),validComponents1.end());
+    compBBM.insert(compBBM.begin(),compBB1.begin(),compBB1.end());
+    IplImage * outputOr =
+            cvCreateImage ( cvGetSize ( input ), 8U, 3 );
+    renderImageWithBoxes (grayImage, validComponentsM, compBBM, outputOr);
+    cvSaveImage ( "boxes.png",outputOr);
+    cvReleaseImage ( &outputOr );
+
+    BwImage opt4(output4),opt41(output41);
+    for (int i=0;i<output4->height;i++)
+      for (int j=0;j<output4->width;j++)
+        opt4[i][j]=min(opt4[i][j],opt41[i][j]);
     cvSaveImage ( "text.png", output4);
 
     IplImage * output5 =
@@ -440,6 +525,7 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     cvReleaseImage ( &gradientY );
     cvReleaseImage ( &SWTImage );
     cvReleaseImage ( &edgeImage );
+    cvReleaseImage ( &grayImage );
     return output5;
 }
 
@@ -1204,7 +1290,7 @@ std::vector<Chain> makeChains( IplImage * colorImage,
 
 //////////////////////////////////////////////////////////////////////////
 // for debug LB
-void visualize_rays(std::vector<Ray> rays, IplImage *src, char *name) {
+void visualize_rays(bool dark_on_light,std::vector<Ray> rays, IplImage *src, char *name) {
 	IplImage *showImage = cvCreateImage(cvGetSize(src), 8, 3);
 	cvZero(showImage);
 	for (auto rit = rays.begin(); rit != rays.end(); rit++) {
@@ -1213,8 +1299,12 @@ void visualize_rays(std::vector<Ray> rays, IplImage *src, char *name) {
 			cvCircle(showImage, cvPoint(pit->x, pit->y), 1, s);
 		}
 	}
-	const char *save_name = name ? name : "rays.png";
-	cvSaveImage(save_name, showImage);
+    string save_name_t;
+    if (!dark_on_light)
+      save_name_t = name ? string(name) : "rays0.png";
+    else
+      save_name_t = name ? string(name) : "rays1.png";
+	cvSaveImage(save_name_t.c_str(), showImage);
 	cvReleaseImage(&showImage);
 }
 

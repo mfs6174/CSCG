@@ -101,7 +101,7 @@ std::vector<Chain> makeChains( IplImage * colorImage,
 
 IplImage *get_swt_map(IplImage *input);
 
-void visualize_rays(std::vector<Ray> rays, IplImage *src, char *name = NULL);
+ void visualize_rays(bool t,std::vector<Ray> rays, IplImage *src, char *name = NULL);
 
 }
 
