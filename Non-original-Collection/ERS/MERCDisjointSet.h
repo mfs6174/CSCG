@@ -54,12 +54,18 @@ public:
 
 	// return the total number of vertices in the set
 	int rNumVertices() const {return nVertices_;};
+    int cnt_;
 
 private:
 
 	int *p_;
+    int *tp_;
+    int *tl_;
+    int *tr_;
 	int *size_;
 	MList<int> *lists_;
+    MListNode<int>* *Np1;
+    MListNode<int>* *Np2;
 	int nElements_;
 	int nVertices_;
 };

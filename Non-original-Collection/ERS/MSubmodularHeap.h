@@ -80,6 +80,7 @@ void MSubmodularHeap<T>::EasyPartialUpdateTree(MERCDisjointSet *u,double balanci
 template <class T>
 void MSubmodularHeap<T>::EasySubmodularMaxHeapifyTree()
 {
+  //  std::cout<<"update"<<std::endl;
 	//If the root node value is not updated, then update it
 	//If the root node value is updated, then it is the maximum value in the current heap.
 	//We don't need to update the other nodes because the dimnishing return property guarantees that the value can only be smaller.
@@ -90,8 +91,11 @@ void MSubmodularHeap<T>::EasySubmodularMaxHeapifyTree()
 			this->HeapExtractMax();
 		// Let insert the value into some correct place in the heap.
 		else
+        {
 			this->MaxHeapify(1); // find the maximum one through maxheapify
+        }
 	}
+    //std::cout<<"done"<<std::endl;
 }
 
 
@@ -105,14 +109,15 @@ int MSubmodularHeap<T>::EasyUpdateValueTree(int i)
 	int a,b;
 	a = u_->Find(  this->array_[i].a_ );
 	b = u_->Find(  this->array_[i].b_ );
-	
-	
+	//std::cout<<this->array_[i].a_<<' '<<this->array_[i].b_<<' '<<a<<' '<<b<<std::endl;
+    //std::cout<<this->array_[i].a_<<' '<<this->array_[i].b_<<std::endl;
 
 	// If the edge forms a cycle, makes the gain zero.
 	// Later, we will remove the zero edges from the heap.	
 	if( a==b )
 	{
 		this->array_[i].gain_ = 0;
+        //std::cout<<"zero"<<std::endl;
 	}
 	else
 	{
@@ -122,7 +127,8 @@ int MSubmodularHeap<T>::EasyUpdateValueTree(int i)
 		// recomptue the balancing gain
 		bGain = MERCFunctions::ComputeBGain(u_->rNumVertices(), u_->rSize(a), u_->rSize(b) );
 		
-
+        //std::cout<<u_->rSize(a)<<' '<<u_->rSize(b)<<std::endl;
+        //std::cout<<erGain<<' '<<bGain<<std::endl;
 		// compute the overall gain
 		this->array_[i].gain_ = erGain+balancingTerm_*bGain;
 		//array_[i].erGain_ = erGain;
@@ -130,6 +136,7 @@ int MSubmodularHeap<T>::EasyUpdateValueTree(int i)
 	}
 
 	// If the value is uptodate, we return one. (It will exit the while loop.)
+    //std::cout<<oldGain<<' '<<this->array_[i].gain_<<std::endl;
 	if(oldGain==this->array_[i].gain_)
 		return 1;
 	

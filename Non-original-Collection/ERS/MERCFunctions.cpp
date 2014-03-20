@@ -27,6 +27,8 @@ using namespace std;
 double MERCFunctions::ComputeERGain(double wij,double ci,double cj)
 {
 	double er = ((wij+ci)*log(wij+ci) + (wij+cj)*log(wij+cj) - ci*log(ci)  - cj*log(cj) - 2*wij*log(wij) )/log(2.0);
+    // if (abs(er)<1e-18)
+    //   return 0;
 	if( er!=er )
 		return 0;
 	else

@@ -40,7 +40,7 @@ vector<int> MERCOutput::DisjointSetToLabel(MERCDisjointSet *u)
 	int nSegments=0;
 	int segIndex = 0;
 	int nVertices = u->rNumVertices();
-	std::vector<int> *sarray = new std::vector<int> [nVertices];
+	std::vector<int> *sarray = new std::vector<int> [nVertices*2+1];
 	vector<int> labeling(nVertices);
 
 	for (int k=0; k<nVertices; k++) 
@@ -49,15 +49,15 @@ vector<int> MERCOutput::DisjointSetToLabel(MERCDisjointSet *u)
 	  sarray[comp].push_back(k);
 	}
 	
-	for(int k=0;k<nVertices;k++)
+	for(int k=0;k<nVertices*2+1;k++)
 	{
 		if(sarray[k].size() > 0)
 		{
 			nSegments++;
 		}
 	}
-
-	for(int k=0;k<nVertices;k++)
+    std::cout<<nSegments<<std::endl;
+	for(int k=0;k<nVertices*2+1;k++)
 	{
 		if(sarray[k].size() > 0)
 		{

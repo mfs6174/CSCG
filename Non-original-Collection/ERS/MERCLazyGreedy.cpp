@@ -114,11 +114,12 @@ MERCDisjointSet* MERCLazyGreedy::ClusteringTree(int nVertices,MERCInput &edges,i
 			loop[bestEdge.a_] -= bestEdge.w_;
 			loop[bestEdge.b_] -= bestEdge.w_;
 		}
-
+        //cout<<u->cnt_<<endl;
 		heap.EasyPartialUpdateTree(u,balancing,loop);
+        //cout<<"done update"<<endl;
 	}
 
-
+      
 	delete [] loop;
 	//QueryPerformanceCounter(&t2);
 	//std::cout.precision(6);
