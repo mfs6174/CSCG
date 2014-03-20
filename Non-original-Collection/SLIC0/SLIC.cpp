@@ -522,7 +522,7 @@ void SLIC::GetLABXYSeeds_ForGivenK(
 			kseedsy.push_back(Y);
 			n++;
 		}
-.		r++;
+		r++;
 	}
 
 	if(perturbseeds)
@@ -950,6 +950,7 @@ int SLIC::SLICO_Provider(Mat input,vector< vector<int> >  &slicLabels,Mat &outpu
   PerformSLICO_ForGivenK(img, width, height, labels, numlabels, m_spcount, 0);//for a given number K of superpixels
   numLab=numlabels;
   DrawContoursAroundSegmentsTwoColors(img, labels, width, height);//for black-and-white contours around superpixels
+  slicLabels.clear();
   slicLabels=vector< vector<int> >(height,vector<int>(width,0));
   output=Mat(height,width,CV_8UC3);
   for (int i=0;i<height;i++)
