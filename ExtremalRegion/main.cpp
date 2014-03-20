@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
     er.calc(ch,th,1);
     imshow("low2high",tmpimage);
     imshow("high2low",er.output);
+    imwrite(string(argv[1])+"__l2h.jpg",tmpimage);
+    imwrite(string(argv[1])+"__h2l.jpg",er.output);
     waitKey(0);
   }
   return 0;

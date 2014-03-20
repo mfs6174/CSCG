@@ -7,9 +7,9 @@ using namespace cv;
 
 void ExRegion::_floodfill(int x,int y)
 {
-  if (belong[x][y])
+   if (x<1||y<1||x>sh||y>sw)
     return;
-  if (x<1||y<1||x>sh||y>sw)
+  if (belong[x][y])
     return;
   if ( ( (!flip)?(chan.at<uchar>(x-1,y-1)):(255-chan.at<uchar>(x-1,y-1))) >threshold)
     return;
@@ -91,7 +91,7 @@ void ExRegion::calc(char _ch,int _threshold,bool _flip)
       flag=true;
       _floodfill(i,j);
     }
-  //  cout<<1<<endl;
+  cout<<1<<endl;
   
   input.copyTo(output);
   for (int i=1;i<=sh;i++)
