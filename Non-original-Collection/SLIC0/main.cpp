@@ -5,37 +5,29 @@
 
 
 SLIC slic;
-const int minsize=20;
-const double ratio2=0.95,ratio1=0.85;
+const int minsize=30;
+const double ratio2=0.99,ratio1=0.98;
 
 int check2Color(const Mat & image,const vector<Point2i> &bin)
 {
-  int tong[8][8][8]={0};
+  Mat imat(bin.size(),3,CV_64FC1),cov,mean,eig,vec;
   for (int k=0;k<bin.size();k++)
   {
     int i=bin[k].x,j=bin[k].y;
     const Vec3b &vv=image.at<Vec3b>(i,j);
-    tong[vv[0]/32][vv[1]/32][vv[2]/32]++;
+    for (int p=0;p<3;p++)
+      imat.at<double>(k,p)=vv[p];
   }
-  int mm=0,mx=0;
-  for (int i=0;i<8;i++)
-    for (int j=0;j<8;j++)
-      for (int k=0;k<8;k++)
-      {
-        if (tong[i][j][k]>mm)
-        {
-          mm=tong[i][j][k];
-          mx=mm;
-        }
-        else
-          if (tong[i][j][k]>mx)
-            mx=tong[i][j][k];
-      }
-  //cout<<mm<<' '<<bin.size()<<endl;
-  if ((double)mm/bin.size()>=ratio1)
+  calcCovarMatrix(imat,cov,mean,CV_COVAR_NORMAL|CV_COVAR_ROWS|CV_COVAR_SCALE);
+  eigen(cov,eig,vec);
+  double egsum=( sum(eig) )[0];
+  //cout<<egsum<<endl;
+  cout<<"eigenvalue is "<<eig.at<double>(0)<<' '<<eig.at<double>(1)<<' '<<eig.at<double>(3)<<endl;
+  for (int i=0;i<3;i++)
+    cout<<"vec "<<i<<' '<<vec.at<double>(i,0)<<' '<<vec.at<double>(i,1)<<' '<<vec.at<double>(i,2)<<endl;
+  if (eig.at<double>(0)/egsum>ratio1)
     return 1;
-  if ( (double)(mm+mx)/bin.size()>=ratio2)
-    
+  if ( (eig.at<double>(0)+eig.at<double>(1))/egsum>ratio2)
     return 2;
   return 0;
 }
@@ -50,11 +42,13 @@ int main(int argc, char *argv[])
   if (argc==3)
   {
     Mat myimage=imread(argv[1]),outimage,smask,wimage;
+    Mat labimage;
+    cvtColor(myimage,labimage,CV_BGR2Lab);
     myimage.copyTo(wimage);
     namedWindow("slic",1);
     int width=myimage.cols,height=myimage.rows;
     int maxp=(width/minsize)*(height/minsize);
-    smask=Mat::zeros(width,height,CV_8U);
+    smask=Mat::zeros(height,width,CV_8U);
     vector< vector<int> > labs;
     vector<int> vld;
     vector< vector<Point2i> > bins;
