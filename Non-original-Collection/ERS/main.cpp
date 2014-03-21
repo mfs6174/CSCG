@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
   inputA.Resize(width,height,false);
   inputB.Resize(width,height,false);
   myimage.copyTo(outimage);
-  Mat tmpimage(width,height,CV_8UC3);
+  Mat tmpimage(height,width,CV_8UC3);
   //myimage.copyTo(tmpimage);
   //tmpimage=tmpimage/255.0;
   cvtColor(myimage,tmpimage,CV_BGR2Lab);
