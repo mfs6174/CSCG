@@ -33,6 +33,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include <opencv/cxcore.h>
@@ -46,6 +47,8 @@
 #include "../config.h"
 
 #define PI 3.14159265
+
+std::ofstream ouf("count.txt");
 
 namespace swt{
 std::vector<std::pair<CvPoint,CvPoint> > findBoundingBoxes( std::vector<std::vector<Point2d> > & components,
@@ -201,10 +204,10 @@ void renderComponentsWithBoxes (IplImage * SWTImage, std::vector<std::vector<Poi
 
     int count = 0;
     for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
-        CvScalar c;
-        if (count % 3 == 0) c=cvScalar(255,0,0);
-        else if (count % 3 == 1) c=cvScalar(0,255,0);
-        else c=cvScalar(0,0,255);
+        CvScalar c=cvScalar(0,255,0);
+        // if (count % 3 == 0) c=cvScalar(255,0,0);
+        // else if (count % 3 == 1) c=cvScalar(0,255,0);
+        // else c=cvScalar(0,0,255);
         count++;
         cvRectangle(output,it->first,it->second,c,2);
     }
@@ -235,13 +238,13 @@ void renderComponentsWithBoxes (IplImage * SWTImage, std::vector<std::vector<Poi
     cvCvtColor (input, output, CV_GRAY2RGB);
     //cvReleaseImage ( &outTemp );
     //cvReleaseImage ( &out );
-
+    ouf<<bb.size()<<std::endl;
     int count = 0;
     for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
-        CvScalar c;
-        if (count % 3 == 0) c=cvScalar(255,0,0);
-        else if (count % 3 == 1) c=cvScalar(0,255,0);
-        else c=cvScalar(0,0,255);
+        CvScalar c=cvScalar(0,255,0);
+        // if (count % 3 == 0) c=cvScalar(255,0,0);
+        // else if (count % 3 == 1) c=cvScalar(0,255,0);
+        // else c=cvScalar(0,0,255);
         count++;
         cvRectangle(output,it->first,it->second,c,2);
     }
@@ -287,9 +290,10 @@ void renderChainsWithBoxes (IplImage * SWTImage,
     int count = 0;
     for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
         CvScalar c;
-        if (count % 3 == 0) c=cvScalar(255,0,0);
-        else if (count % 3 == 1) c=cvScalar(0,255,0);
-        else c=cvScalar(0,0,255);
+        // if (count % 3 == 0) c=cvScalar(255,0,0);
+        // else if (count % 3 == 1) c=cvScalar(0,255,0);
+        // else c=cvScalar(0,0,255);
+        c=cvScalar(0,255,0);
         count++;
         cvRectangle(output,it->first,it->second,c,2);
     }
@@ -411,10 +415,13 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
     IplImage * gradientY =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    cvSobel(gaussianImage, gradientX , 1, 0, CV_SCHARR);
-    cvSobel(gaussianImage, gradientY , 0, 1, CV_SCHARR);
-    cvSmooth(gradientX, gradientX, 3, 3);
-    cvSmooth(gradientY, gradientY, 3, 3);
+     cvSobel(gaussianImage, gradientX , 1, 0, CV_SCHARR);
+     cvSobel(gaussianImage, gradientY , 0, 1, CV_SCHARR);
+     cvSobel(grayImage, gradientX , 1, 0, CV_SCHARR);
+     cvSobel(grayImage, gradientY , 0, 1, CV_SCHARR);
+     cvSmooth(gradientX, gradientX, 3, 3);
+     cvSmooth(gradientY, gradientY, 3, 3);
+    
     cvReleaseImage ( &gaussianImage );
 
     // Calculate SWT and return ray vectors
@@ -595,7 +602,7 @@ void strokeWidthTransform (IplImage * edgeImage,
                                 G_yt = G_yt/mag;
                             }
 
-                            if (acos(G_x * -G_xt + G_y * -G_yt) < PI/2.0 ) {
+                            if (acos(G_x * -G_xt + G_y * -G_yt) < PI/3.0 ) {
                                 float length = sqrt( ((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
                                 for (std::vector<Point2d>::iterator pit = points.begin(); pit != points.end(); pit++) {
                                     if (CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) < 0) {
@@ -841,6 +848,7 @@ void filterComponents(IplImage * SWTImage,
 // 			cvWaitKey();
 			
             // check if variance is less than half the mean
+            swt_filter_variance_mean_ratio=3.0;
             if (variance > swt_filter_variance_mean_ratio * mean) {
                  continue;
             }
@@ -849,10 +857,14 @@ void filterComponents(IplImage * SWTImage,
             float width = (float)(maxy-miny+1);
 
             // check font height
-            if (width > 300) {
+            if (width > 300  || width <10) {
                 continue;
             }
 
+            // if (mean>15)
+            //   continue;
+            // if (length*width*0.25>it->size())
+            //   continue;
 			//printf("go through 1\n");
 
             float area = length * width;
@@ -1085,7 +1097,7 @@ std::vector<Chain> makeChains( IplImage * colorImage,
     std::sort(chains.begin(), chains.end(), &chainSortDist);
 
     std::cerr << std::endl;
-    const float strictness = PI/6.0;
+    const float strictness = PI/4.0;
     //merge chains
     int merges = 1;
     while (merges > 0) {

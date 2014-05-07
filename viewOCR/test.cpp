@@ -45,17 +45,17 @@ namespace Core{
 			output3 = cvLoadImage("components1.png" , 1);
 			cvSaveImage(buf, output3);
 
-			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_text.png");
-			IplImage* output4 = cvLoadImage("text.png" , 1);
-			cvSaveImage(buf, output4);
+			// sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_text.png");
+			// IplImage* output4 = cvLoadImage("text.png" , 1);
+			// cvSaveImage(buf, output4);
             
 			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_canny.png");
 			IplImage* output5 = cvLoadImage("canny.png" , 1);
 			cvSaveImage(buf, output5);
 
-			sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , ".png");
-			//IplImage* output4 = cvLoadImage("text.png" , 1);
-			cvSaveImage(buf, output6);
+			// sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , ".png");
+			// //IplImage* output4 = cvLoadImage("text.png" , 1);
+			// cvSaveImage(buf, output6);
 
             sprintf(buf , "%s%d%s" , imgSaveBase.c_str() , i , "_boxes.png");
 			IplImage* output7 = cvLoadImage("boxes.png" , 1);

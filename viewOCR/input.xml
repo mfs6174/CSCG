@@ -2,9 +2,9 @@
 <root>
      <input>
        <!--<filename>e:\liubin\project\image_ocr\text_recognition\data\test-textloc-gt\392.jpg</filename>-->
-       <imgBase>/home/mfs6174/PROJ/data/mydata/case2/</imgBase>
-	   <imgSaveBase>/home/mfs6174/PROJ/data/mydata/res2/</imgSaveBase>
-	   <imgNum>80</imgNum>
+       <imgBase>/home/mfs6174/PROJ/data/mydata/case4/</imgBase>
+	   <imgSaveBase>/home/mfs6174/PROJ/data/mydata/res6/</imgSaveBase>
+	   <imgNum>76</imgNum>
     </input>
 
     <parameter>

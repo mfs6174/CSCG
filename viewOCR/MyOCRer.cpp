@@ -46,10 +46,35 @@ namespace Core{
 		return true;
 	}
 
+  inline float diff(const Mat &img3f, int x1, int y1, int x2, int y2)
+  {
+	const Vec3f &p1 = img3f.at<Vec3f>(y1, x1);
+	const Vec3f &p2 = img3f.at<Vec3f>(y2, x2);
+	return sqrt(sqr(p1[0] - p2[0]) + sqr(p1[1] - p2[1]) + sqr(p1[2] - p2[2]));
+}
+  
 	void MyOCRer::textDetection(){
-
+      
 		//IplImage *newImage = cvLoadImage(input_filename.c_str());
 		if(img == NULL) return;
+        // Mat tmp(img),grad,lab;
+        // tmp.convertTo(lab,CV_32FC3,1.0/255);
+        // cvtColor(lab,lab,CV_BGR2Lab);
+        // int width=tmp.cols;
+        // int height=tmp.rows;
+        // const int grDist=1;
+        // grad=Mat::zeros(height,width,CV_32F);
+        // for (int i=0;i<height;i++)
+        //   for (int j=0;j<width;j++)
+        //     for (int o=-grDist;o<=grDist;o++)
+        //       for (int p=-grDist;p<=grDist;p++)
+        //       {
+        //         if (i+o < 0 || i+o>=height || j+p<0 ||j+p>=width )
+        //           continue;
+        //         grad.at<float>(i,j)=max(grad.at<float>(i,j),diff(lab,j,i,j+p,i+o));
+        //       }
+        // normalize( grad, grad, 0, 1, NORM_MINMAX, -1, Mat() );
+        // IplImage src=grad;
 		IplImage *new_swt_text = swt::textDetection(img, swt_dark_on_light);
 		cvThreshold(new_swt_text, new_swt_text, 254, 255, CV_THRESH_BINARY);
 		cvSaveImage("swt.tif", new_swt_text);
