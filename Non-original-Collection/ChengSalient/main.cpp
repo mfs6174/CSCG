@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     Mat img3f=imread(argv[1]),outimage;
     namedWindow("SAL",1);
     img3f.convertTo(img3f, CV_32FC3, 1.0/255);
-    outimage = Saliency::gFuns[0](img3f);
+    outimage = Saliency::gFuns[1](img3f);
     imshow("SAL",outimage);
     outimage.convertTo(outimage,CV_8UC3,255);
     imwrite(string(argv[1])+"__SAL.jpg",outimage);
