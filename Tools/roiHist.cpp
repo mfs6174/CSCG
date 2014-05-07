@@ -23,7 +23,7 @@ struct histCmp
 
 double histCmp::compare(Rect r1,Rect r2)
 {
-  int hbins = 9, sbins = 4;
+  int hbins = 18, sbins = 8;
   int histSize[] = {hbins, sbins};
   // hue varies from 0 to 179, see cvtColor
   float hranges[] = { 0, 180 };
